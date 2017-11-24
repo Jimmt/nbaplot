@@ -1,0 +1,31 @@
+Points per game
+Rebounds per game
+Assists per game
+Minutes per game
+Turnovers per game
+Steals per game
+Blocks pergame
+3PT%
+FT%
+FG%
+Total assists
+Total blocks
+Total steals
+Total turnovers
+Total offensive rebounds
+Total defensive rebounds
+Total rebounds
+Total field goals made
+Total field goals attempted
+Total 3PT made
+Total 3PT attempted
+Total FT made
+Total FT attempted
+Total personal fouls
+Total points
+Total games played
+Total games started
+Total +/-
+Total minutes
+Total double-doubles
+Total trible-doubles

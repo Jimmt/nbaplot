@@ -14,14 +14,16 @@ players <- flatten(as.data.frame(fromJSON(content(players.request, "text"))))
 
 players <- players %>% mutate(name = paste(league.standard.firstName, league.standard.lastName))
 teams <- teams %>% filter(league.standard.isNBAFranchise == TRUE)
+stats <- scan("stats.txt", what="", sep="\n")
 
-my.ui <- fluidPage(
+my.ui <- fluidPage(theme = "style.css",
   headerPanel("NBA Graphs"),
   
   sidebarLayout(  
     sidebarPanel(  
       selectInput("team", "Team", choices = teams$league.standard.fullName, selected = "Dallas Mavericks"),
-      htmlOutput("selectPlayer")
+      htmlOutput("selectPlayer"),
+      selectInput("stat", "Stat", choices = stats, selected = stats[1])
     ),
     mainPanel(   
       htmlOutput("playerPic"),
@@ -51,8 +53,7 @@ my.server <- function(input, output){
       first.name <- gsub("\\.", "", row$league.standard.firstName) 
       first.name <- gsub(" ", "_", first.name)
       src <- paste0("https://nba-players.herokuapp.com/players/", last.name, "/", first.name)
-      print(src)
-      c("<img src='", src, "'>")
+      c("<center><img src='", src, "'></center>")
     }
  }) 
 
@@ -63,8 +64,11 @@ my.server <- function(input, output){
       single.player <- flatten(as.data.frame(fromJSON(content(single.player.request, "text"))))
       single.player <- single.player %>% select(starts_with("league.standard.stats.regularSeason"))
       names(single.player) <- str_replace(names(single.player), "league.standard.stats.regularSeason.season.", "")
-      View(single.player)
-      plot_ly(data = single.player, type = "scatter", mode = "lines", x = ~seasonYear, y = ~as.numeric(total.ppg))
+
+      stat.category <- single.player[, 2 + match(input$stat, stats)]
+      print(match(input$stat, stats))
+      plot_ly(data = single.player, type = "scatter", mode = "lines+markers", x = ~seasonYear, y = as.numeric(stat.category), hoverinfo = "y") %>%
+        layout(xaxis = list(title = "Year"), yaxis = list(title = input$stat))
     } else {
       plot_ly(type = "scatter", mode = "lines", x = c(), y = c())
     }

@@ -16,6 +16,8 @@ players <- players %>% mutate(name = paste(league.standard.firstName, league.sta
 teams <- teams %>% filter(league.standard.isNBAFranchise == TRUE)
 stats <- scan("stats.txt", what="", sep="\n")
 
+font <- list(family = "sans serif", size = 14, color = rgb(0, 0, 0))
+
 my.ui <- fluidPage(theme = "style.css",
   headerPanel("NBA Graphs"),
   
@@ -27,6 +29,7 @@ my.ui <- fluidPage(theme = "style.css",
     ),
     mainPanel(   
       htmlOutput("playerPic"),
+      htmlOutput("playerDesc"),
       plotlyOutput("plot")
     )
   )
@@ -56,6 +59,15 @@ my.server <- function(input, output){
       c("<center><img src='", src, "'></center>")
     }
  }) 
+  
+  output$playerDesc <- renderText({
+    if(!is.null(input$player)){
+      row <- players %>% filter(name == input$player)
+      descA <- c("<span>", row$league.standard.weightPounds, " lb", "</span>")
+      descB <- c("<span>", row$league.standard.heightFeet, " feet", row$league.standard.heightInches , " inches", "</span>")
+      c("<center id='description'>", descA, descB, "</center>")
+    }
+  })
 
   output$plot <- renderPlotly({
     if(!is.null(input$player)){
@@ -64,10 +76,20 @@ my.server <- function(input, output){
       single.player <- flatten(as.data.frame(fromJSON(content(single.player.request, "text"))))
       single.player <- single.player %>% select(starts_with("league.standard.stats.regularSeason"))
       names(single.player) <- str_replace(names(single.player), "league.standard.stats.regularSeason.season.", "")
-
+      
       stat.category <- single.player[, 2 + match(input$stat, stats)]
-      print(match(input$stat, stats))
-      plot_ly(data = single.player, type = "scatter", mode = "lines+markers", x = ~seasonYear, y = as.numeric(stat.category), hoverinfo = "y") %>%
+      
+      teams.text <- lapply(single.player$teams, function(x){
+        return (
+          paste(sapply(x$teamId, function(x1){
+            return (teams %>% filter(teams$league.standard.teamId == x1) %>% select(league.standard.tricode))
+          }), sep = "", collapse = ", ")
+        )
+      })
+      View(teams.text)
+      plot_ly(data = single.player, type = "scatter", mode = "lines+markers", x = ~seasonYear, y = as.numeric(stat.category), hoverinfo = "y",
+              text = teams.text, showlegend = FALSE) %>%
+        add_text(textfont = font, textposition = "top right") %>%
         layout(xaxis = list(title = "Year"), yaxis = list(title = input$stat))
     } else {
       plot_ly(type = "scatter", mode = "lines", x = c(), y = c())

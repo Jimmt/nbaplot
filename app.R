@@ -86,7 +86,7 @@ my.server <- function(input, output){
           }), sep = "", collapse = ", ")
         )
       })
-      View(teams.text)
+      # View(teams.text)
       plot_ly(data = single.player, type = "scatter", mode = "lines+markers", x = ~seasonYear, y = as.numeric(stat.category), hoverinfo = "y",
               text = teams.text, showlegend = FALSE) %>%
         add_text(textfont = font, textposition = "top right") %>%
